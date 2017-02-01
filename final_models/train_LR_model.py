@@ -29,7 +29,7 @@ print "ML model is trained with", fpname
 
 # read the actives
 fps_act = []
-for line in open(inpath+'training_actives_cleaned.dat', 'r'):
+for line in gzip.open(inpath+'training_actives_cleaned.dat.gz', 'r'):
     line = line.strip().split()
     # contains: [sample_id, hit, pec50, smiles]
     fp = cf.getNumpyFP(line[3], fpname, 'float')
@@ -40,7 +40,7 @@ print "actives read and fingerprints calculated:", num_actives
 
 # read the inactives
 fps_inact = []
-for line in open(inpath+'training_inactives_cleaned.dat', 'r'):
+for line in gzip.open(inpath+'training_inactives_cleaned.dat.gz', 'r'):
     line = line.strip().split()
     # contains: [sample_id, hit, pec50, smiles]
     fp = cf.getNumpyFP(line[3], fpname, 'float')
