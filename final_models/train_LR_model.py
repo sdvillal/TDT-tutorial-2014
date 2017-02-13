@@ -20,7 +20,8 @@ inpath = path + '../data/'
 # prepare command-line option parser
 usage = "usage: %prog [options] arg"
 parser = OptionParser(usage)
-parser.add_option("-f", "--fingerprint", dest="fp", help="fingerprint name (options are: morgan2, ap, rdk5)")
+parser.add_option("-f", "--fingerprint", dest="fp",
+                  help="fingerprint name (options are: %s)" % ', '.join(sorted(cf.fp_dict)))
 
 # read in command line options
 (options, args) = parser.parse_args()
