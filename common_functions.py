@@ -13,10 +13,15 @@ num_rep = 50
 num_percent = 0.1
 
 # fingerprint dictionary
-fp_dict = {}
-fp_dict['morgan2'] = lambda m: rdmd.GetMorganFingerprintAsBitVect(m, 2, nBits=1024)
-fp_dict['ap'] = lambda m: rdmd.GetHashedAtomPairFingerprintAsBitVect(m, nBits=2048)
-fp_dict['rdk5'] = lambda m: Chem.RDKFingerprint(m, maxPath=5, fpSize=2048, nBitsPerHash=2)
+fp_dict = {
+    'morgan2': lambda m: rdmd.GetMorganFingerprintAsBitVect(m, 2, nBits=1024),
+    'ap': lambda m: rdmd.GetHashedAtomPairFingerprintAsBitVect(m, nBits=2048),
+    'rdk5': lambda m: Chem.RDKFingerprint(m, maxPath=5, fpSize=2048, nBitsPerHash=2),
+    'morgan2-4096': lambda m: rdmd.GetMorganFingerprintAsBitVect(m, 2, nBits=4096),
+    'ap-4096': lambda m: rdmd.GetHashedAtomPairFingerprintAsBitVect(m, nBits=4096),
+    'rdk5-4096': lambda m: Chem.RDKFingerprint(m, maxPath=5, fpSize=4096, nBitsPerHash=2),
+}
+
 
 def getNumpyFP(smiles, fpname, fptype):
     m = Chem.MolFromSmiles(smiles)
