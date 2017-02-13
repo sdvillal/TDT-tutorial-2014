@@ -37,7 +37,7 @@ print("similarity search with", fpname)
 
 # read the training actives
 fps_act = []
-for line in open(inpath+'training_actives_cleaned.dat', 'rt'):
+for line in gzip.open(inpath+'training_actives_cleaned.dat.gz', 'rt'):
     if line[0] == "#":
         continue
     line = line.rstrip().split()
