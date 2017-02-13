@@ -12,9 +12,9 @@ inpath = path + '../data/'
 
 # read, filter and write the commercial compounds
 count = 0
-outfile = gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'w')
+outfile = gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'wt')
 outfile.write("#Identifier\tSMILES\n")
-for line in gzip.open(inpath+'parent.smi.gz', 'r'):
+for line in gzip.open(inpath+'parent.smi.gz', 'rt'):
     if line[0] == "#":
         continue
     line = line.rstrip().split()

@@ -18,9 +18,9 @@ path = os.getcwd() + '/'
 inpath = path + '../data/'
 
 # load the ML models
-lr_rdk5 = pickle.load(gzip.open(path+'../final_models/lr_rdk5_model.pkl.gz', 'r'))
-rf_rdk5 = pickle.load(gzip.open(path+'../final_models/rf_rdk5_model.pkl.gz', 'r'))
-rf_morgan2 = pickle.load(gzip.open(path+'../final_models/rf_morgan2_model.pkl.gz', 'r'))
+lr_rdk5 = pickle.load(gzip.open(path+'../final_models/lr_rdk5_model.pkl.gz', 'rb'))
+rf_rdk5 = pickle.load(gzip.open(path+'../final_models/rf_rdk5_model.pkl.gz', 'rb'))
+rf_morgan2 = pickle.load(gzip.open(path+'../final_models/rf_morgan2_model.pkl.gz', 'rb'))
 print("rf models loaded")
 
 # loop over commercial products
@@ -28,7 +28,7 @@ proba_lr_rdk5 = []
 proba_rf_rdk5 = []
 proba_rf_morgan2 = []
 mols = []
-for line in gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'r'):
+for line in gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'rt'):
     if line[0] == "#":
         continue
     line = line.rstrip().split()
@@ -43,8 +43,8 @@ for line in gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'r'):
 print("probabilities calculated")
 
 # load similarities
-scores_rdk5 = pickle.load(gzip.open(path+'scores_rdk5.pkl.gz', 'r'))
-scores_morgan2 = pickle.load(gzip.open(path+'scores_morgan2.pkl.gz', 'r'))
+scores_rdk5 = pickle.load(gzip.open(path+'scores_rdk5.pkl.gz', 'rb'))
+scores_morgan2 = pickle.load(gzip.open(path+'scores_morgan2.pkl.gz', 'rb'))
 "similarities loaded"
 
 # assign ranks
@@ -65,7 +65,7 @@ fusion_scores.sort(reverse=True)
 print("fusion done")
 
 # write out
-outfile = gzip.open(path+'ranked_list_top10K_commercial_cmps.dat.gz', 'w')
+outfile = gzip.open(path+'ranked_list_top10K_commercial_cmps.dat.gz', 'wt')
 outfile.write("#Identifier\tSMILES\tMax_Rank\tMax_Proba\tSimilarity\n")
 for r, pp, s, idx, smiles in fusion_scores[:10000]:
     outfile.write("%s\t%s\t%i\t%.5f\t%.5f\n" % (idx, smiles, r, pp, s))

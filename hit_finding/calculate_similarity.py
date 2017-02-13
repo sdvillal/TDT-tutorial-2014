@@ -36,7 +36,7 @@ print("similarity search with", fpname)
 
 # read the training actives
 fps_act = []
-for line in open(inpath+'training_actives_cleaned.dat', 'r'):
+for line in open(inpath+'training_actives_cleaned.dat', 'rt'):
     if line[0] == "#":
         continue
     line = line.rstrip().split()
@@ -48,7 +48,7 @@ print("training actives read and fingerprints calculated:", len(fps_act))
 
 # read the commercial compounds
 scores = []
-for line in gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'r'):
+for line in gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'rt'):
     if line[0] == "#":
         continue
     line = line.rstrip().split()
