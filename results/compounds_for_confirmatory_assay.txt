@@ -1,0 +1,1 @@
+../results/modern/compounds_for_confirmatory_assay.txt
