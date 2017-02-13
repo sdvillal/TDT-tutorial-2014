@@ -1,12 +1,19 @@
 # trains and evaluates a RF model with a given fingerprint
 # and does the prediction for the test molecules
+from __future__ import print_function
 
-import os, gzip, numpy, cPickle, sys
-from collections import defaultdict
-from rdkit import Chem, DataStructs
-from rdkit.ML.Scoring import Scoring
-from sklearn.ensemble import RandomForestClassifier, forest
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+import gzip
+import os
+import sys
 from optparse import OptionParser
+
+from sklearn.ensemble import RandomForestClassifier
+
+from rdkit.ML.Scoring import Scoring
 
 # common functions
 sys.path.insert(0, os.getcwd()+'/')
@@ -14,8 +21,8 @@ sys.path.insert(0, os.getcwd()+'/../')
 import common_functions as cf
 
 # monkey path for random forest
-import random_forest_functions as rfmeth
-forest._parallel_build_trees = rfmeth._balanced_parallel_build_trees
+# import random_forest_functions as rfmeth
+# forest._parallel_build_trees = rfmeth._balanced_parallel_build_trees
 
 path = os.getcwd() + '/'
 inpath = path + '../data/'
@@ -32,7 +39,7 @@ if options.fp:
     fpname = options.fp
 else:
     raise RuntimeError('fingerprint name missing')
-print "ML model is trained with", fpname
+print("ML model is trained with", fpname)
 
 # read the actives
 fps_act = []
@@ -43,7 +50,7 @@ for line in open(inpath+'training_actives_cleaned.dat', 'r'):
     if fp is not None:
         fps_act.append(fp)
 num_actives = len(fps_act)
-print "actives read and fingerprints calculated:", num_actives
+print("actives read and fingerprints calculated:", num_actives)
 
 # read the inactives
 fps_inact = []
@@ -54,7 +61,7 @@ for line in open(inpath+'training_inactives_cleaned.dat', 'r'):
     if fp is not None:
         fps_inact.append(fp)
 num_inactives = len(fps_inact)
-print "inactives read and fingerprints calculated:", num_inactives
+print("inactives read and fingerprints calculated:", num_inactives)
 
 # test lists
 test_indices_act = []
@@ -65,14 +72,14 @@ test_indices_inact = []
 for line in gzip.open(path+'../test_lists/test_lists_10percent_inactives.dat.gz', 'r'):
     line = line.strip().split()
     test_indices_inact.append(set([int(l) for l in line]))
-print "test lists read in:", len(test_indices_act), len(test_indices_inact)
+print("test lists read in:", len(test_indices_act), len(test_indices_inact))
 
 # loop over the repetitions
-infile = gzip.open(path+'scores/lists_'+fpname+'.pkl.gz' , 'r')
-rankfile = gzip.open(path+'scores/ranks_actives_rf_'+fpname+'.pkl.gz' , 'w')
+infile = gzip.open(path+'scores/lists_'+fpname+'.pkl.gz', 'r')
+rankfile = gzip.open(path+'scores/ranks_actives_rf_'+fpname+'.pkl.gz', 'w')
 outfile = open(path+'analysis/output_analysis_rf_'+fpname+'.dat', 'w')
 for i in range(cf.num_rep):
-    print "repetition", i
+    print("repetition", i)
 
     # training 
     train_indices_act = set(range(num_actives)).difference(test_indices_act[i])
@@ -85,12 +92,12 @@ for i in range(cf.num_rep):
     ml.fit(train_fps, ys_fit)
 
     # chemical similarity
-    simil = cPickle.load(infile)
+    simil = pickle.load(infile)
 
     # ranking
     test_fps = [fps_act[j] for j in test_indices_act[i]]
     test_fps += [fps_inact[j] for j in test_indices_inact[i]]
-    scores = [[pp[1], s[0], s[1]] for pp,s in zip(ml.predict_proba(test_fps), simil)]
+    scores = [[pp[1], s[0], s[1]] for pp, s in zip(ml.predict_proba(test_fps), simil)]
 
     # write ranks for actives
     cf.writeActiveRanks(scores, rankfile, num_actives)
