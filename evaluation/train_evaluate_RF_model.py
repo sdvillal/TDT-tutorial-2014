@@ -88,7 +88,8 @@ for i in range(cf.num_rep):
     train_fps += [fps_inact[j] for j in train_indices_inact]
     ys_fit = [1]*len(train_indices_act) + [0]*len(train_indices_inact)
     # train the model
-    ml = RandomForestClassifier(n_estimators=100, max_depth=100, min_samples_split=2, min_samples_leaf=1)
+    ml = RandomForestClassifier(n_estimators=100, max_depth=100, min_samples_split=2, min_samples_leaf=1,
+                                class_weight='balanced')
     ml.fit(train_fps, ys_fit)
 
     # chemical similarity

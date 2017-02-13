@@ -70,6 +70,7 @@ print("training")
 train_fps = fps_act + fps_inact
 ys_fit = [1]*len(fps_act) + [0]*len(fps_inact)
 # train the model
-ml = RandomForestClassifier(n_estimators=100, max_depth=100, min_samples_split=2, min_samples_leaf=1, n_jobs=4)
+ml = RandomForestClassifier(n_estimators=100, max_depth=100, min_samples_split=2, min_samples_leaf=1, n_jobs=4,
+                            class_weight='balanced')
 ml.fit(train_fps, ys_fit)
 print("model trained")

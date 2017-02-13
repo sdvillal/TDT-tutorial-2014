@@ -85,7 +85,8 @@ for i in range(cf.num_rep):
     train_fps = [fps_act_rdk5[j] for j in train_indices_act]
     train_fps += [fps_inact_rdk5[j] for j in train_indices_inact]
     # train the RF
-    rf_rdk5 = RandomForestClassifier(n_estimators=100, max_depth=100, min_samples_split=2, min_samples_leaf=1)
+    rf_rdk5 = RandomForestClassifier(n_estimators=100, max_depth=100, min_samples_split=2, min_samples_leaf=1,
+                                     class_weight='balanced')
     rf_rdk5.fit(train_fps, ys_fit)
     # train the LR
     lr_rdk5 = LogisticRegression()
@@ -102,7 +103,8 @@ for i in range(cf.num_rep):
     train_fps = [fps_act_morgan2[j] for j in train_indices_act]
     train_fps += [fps_inact_morgan2[j] for j in train_indices_inact]
     # train the RF
-    rf_morgan2 = RandomForestClassifier(n_estimators=100, max_depth=100, min_samples_split=2, min_samples_leaf=1)
+    rf_morgan2 = RandomForestClassifier(n_estimators=100, max_depth=100, min_samples_split=2, min_samples_leaf=1,
+                                        class_weight='balanced')
     rf_morgan2.fit(train_fps, ys_fit)
     # chemical similarity
     simil = pickle.load(infile2)
