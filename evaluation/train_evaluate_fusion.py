@@ -32,7 +32,7 @@ fpname2 = 'morgan2'
 # read the actives
 fps_act_rdk5 = []
 fps_act_morgan2 = []
-for line in gzip.open(inpath+'training_actives_cleaned.dat.gz', 'r'):
+for line in gzip.open(inpath+'training_actives_cleaned.dat.gz', 'rt'):
     line = line.rstrip().split()
     # contains: [sample_id, hit, pec50, smiles]
     fp = cf.getNumpyFP(line[3], fpname1, 'float')
@@ -47,7 +47,7 @@ num_actives = len(fps_act_rdk5)
 # read the inactives
 fps_inact_rdk5 = []
 fps_inact_morgan2 = []
-for line in gzip.open(inpath+'training_inactives_cleaned.dat.gz', 'r'):
+for line in gzip.open(inpath+'training_inactives_cleaned.dat.gz', 'rt'):
     line = line.rstrip().split()
     # contains: [sample_id, hit, pec50, smiles]
     fp = cf.getNumpyFP(line[3], fpname1, 'float')
@@ -61,19 +61,19 @@ num_inactives = len(fps_inact_rdk5)
 
 # test lists
 test_indices_act = []
-for line in gzip.open(path+'../test_lists/test_lists_10percent_actives.dat.gz', 'r'):
+for line in gzip.open(path+'../test_lists/test_lists_10percent_actives.dat.gz', 'rt'):
     line = line.rstrip().split()
     test_indices_act.append(set([int(l) for l in line]))
 test_indices_inact = []
-for line in gzip.open(path+'../test_lists/test_lists_10percent_inactives.dat.gz', 'r'):
+for line in gzip.open(path+'../test_lists/test_lists_10percent_inactives.dat.gz', 'rt'):
     line = line.rstrip().split()
     test_indices_inact.append(set([int(l) for l in line]))
 print("test lists read in:", len(test_indices_act), len(test_indices_inact))
 
 # loop over the repetitions
-infile1 = gzip.open(path+'scores/lists_'+fpname1+'.pkl.gz', 'r')
-infile2 = gzip.open(path+'scores/lists_'+fpname2+'.pkl.gz', 'r')
-outfile = open(path+'analysis/output_analysis_fusion.dat', 'w')
+infile1 = gzip.open(path+'scores/lists_'+fpname1+'.pkl.gz', 'rb')
+infile2 = gzip.open(path+'scores/lists_'+fpname2+'.pkl.gz', 'rb')
+outfile = open(path+'analysis/output_analysis_fusion.dat', 'wt')
 for i in range(cf.num_rep):
     print("repetition", i)
     # indices of training molecules

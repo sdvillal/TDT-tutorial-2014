@@ -30,7 +30,8 @@ inpath = path + '../data/'
 # prepare command-line option parser
 usage = "usage: %prog [options] arg"
 parser = OptionParser(usage)
-parser.add_option("-f", "--fingerprint", dest="fp", help="fingerprint name (options are: morgan2, ap, rdk5)")
+parser.add_option("-f", "--fingerprint", dest="fp",
+                  help="fingerprint name (options are: %s)" % ', '.join(sorted(cf.fp_dict)))
 
 # read in command line options
 (options, args) = parser.parse_args()
@@ -43,7 +44,7 @@ print("ML model is trained with", fpname)
 
 # read the actives
 fps_act = []
-for line in open(inpath+'training_actives_cleaned.dat', 'r'):
+for line in open(inpath+'training_actives_cleaned.dat', 'rt'):
     line = line.strip().split()
     # contains: [sample_id, hit, pec50, smiles]
     fp = cf.getNumpyFP(line[3], fpname, 'float')
@@ -54,7 +55,7 @@ print("actives read and fingerprints calculated:", num_actives)
 
 # read the inactives
 fps_inact = []
-for line in open(inpath+'training_inactives_cleaned.dat', 'r'):
+for line in open(inpath+'training_inactives_cleaned.dat', 'rt'):
     line = line.strip().split()
     # contains: [sample_id, hit, pec50, smiles]
     fp = cf.getNumpyFP(line[3], fpname, 'float')
@@ -65,19 +66,19 @@ print("inactives read and fingerprints calculated:", num_inactives)
 
 # test lists
 test_indices_act = []
-for line in gzip.open(path+'../test_lists/test_lists_10percent_actives.dat.gz', 'r'):
+for line in gzip.open(path+'../test_lists/test_lists_10percent_actives.dat.gz', 'rt'):
     line = line.strip().split()
     test_indices_act.append(set([int(l) for l in line]))
 test_indices_inact = []
-for line in gzip.open(path+'../test_lists/test_lists_10percent_inactives.dat.gz', 'r'):
+for line in gzip.open(path+'../test_lists/test_lists_10percent_inactives.dat.gz', 'rt'):
     line = line.strip().split()
     test_indices_inact.append(set([int(l) for l in line]))
 print("test lists read in:", len(test_indices_act), len(test_indices_inact))
 
 # loop over the repetitions
-infile = gzip.open(path+'scores/lists_'+fpname+'.pkl.gz', 'r')
-rankfile = gzip.open(path+'scores/ranks_actives_rf_'+fpname+'.pkl.gz', 'w')
-outfile = open(path+'analysis/output_analysis_rf_'+fpname+'.dat', 'w')
+infile = gzip.open(path+'scores/lists_'+fpname+'.pkl.gz', 'rb')
+rankfile = gzip.open(path+'scores/ranks_actives_rf_'+fpname+'.pkl.gz', 'wb')
+outfile = open(path+'analysis/output_analysis_rf_'+fpname+'.dat', 'wt')
 for i in range(cf.num_rep):
     print("repetition", i)
 

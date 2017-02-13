@@ -39,7 +39,7 @@ print("similarity search with", fpname)
 
 # read the actives
 fps_act = []
-for line in open(inpath+'training_actives_cleaned.dat', 'r'):
+for line in open(inpath+'training_actives_cleaned.dat', 'rt'):
     line = line.rstrip().split()
     # contains: [sample_id, hit, pec50, smiles]
     fp = cf.getFP(line[3], fpname)
@@ -49,7 +49,7 @@ print("actives read and fingerprints calculated:", len(fps_act))
 
 # read the inactives
 fps_dcy = []
-for line in open(inpath+'training_inactives_cleaned.dat', 'r'):
+for line in open(inpath+'training_inactives_cleaned.dat', 'rt'):
     line = line.rstrip().split()
     # contains: [sample_id, hit, pec50, smiles]
     fp = cf.getFP(line[3], fpname)
@@ -59,17 +59,17 @@ print("inactives read and fingerprints calculated:", len(fps_dcy))
 
 # test lists
 test_indices_act = []
-for line in gzip.open(path+'../test_lists/test_lists_10percent_actives.dat.gz', 'r'):
+for line in gzip.open(path+'../test_lists/test_lists_10percent_actives.dat.gz', 'rt'):
     line = line.rstrip().split()
     test_indices_act.append([int(l) for l in line])
 test_indices_dcy = []
-for line in gzip.open(path+'../test_lists/test_lists_10percent_inactives.dat.gz', 'r'):
+for line in gzip.open(path+'../test_lists/test_lists_10percent_inactives.dat.gz', 'rt'):
     line = line.rstrip().split()
     test_indices_dcy.append([int(l) for l in line])
 print("test lists read in:", len(test_indices_act), len(test_indices_dcy))
 
 # loop over the repetitions
-outfile = open(path+'analysis/output_analysis_simil_'+fpname+'.dat', 'w')
+outfile = open(path+'analysis/output_analysis_simil_'+fpname+'.dat', 'wt')
 rankfile = gzip.open(path+'scores/lists_'+fpname+'.pkl.gz', 'wb')
 for i in range(cf.num_rep):
     print("repetition", i)

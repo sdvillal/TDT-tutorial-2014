@@ -33,7 +33,7 @@ for m in methods:
         name = m+'_'+fp
         print(name)
         names.append(name)
-        infile = gzip.open(path+'scores/ranks_actives_'+name+'.pkl.gz', 'r')
+        infile = gzip.open(path+'scores/ranks_actives_'+name+'.pkl.gz', 'rb')
         for i in range(cf.num_rep):
             ranks[name].append(pickle.load(infile))
         infile.close()
@@ -55,7 +55,7 @@ for i in range(num_names):
         names2.append(n1+'-'+n2)
 
 # write out
-outfile = open(path+'analysis/pearson_correlation.dat', 'w')
+outfile = open(path+'analysis/pearson_correlation.dat', 'wt')
 outfile.write("#Model1-Model2\tAve_Pearson\tSTD\n")
 outfile.writelines("%s\t%.3f\t%.3f\n" % (k, ave_pearson[k][0], ave_pearson[k][1]) for k in names2)
 outfile.close()
