@@ -10,6 +10,8 @@ import gzip
 import os
 import sys
 
+from optparse import OptionParser
+
 # common functions
 sys.path.insert(0, os.getcwd()+'/../')
 import common_functions as cf
@@ -17,10 +19,25 @@ import common_functions as cf
 path = os.getcwd() + '/'
 inpath = path + '../data/'
 
+# prepare command-line option parser
+usage = "usage: %prog [options] arg"
+parser = OptionParser(usage)
+parser.add_option("--f4096", action="store_true", dest="f4096",
+                  help="use fingerprint size of 4096")
+parser.add_option("--top", type=int, default=10000, dest="top",
+                  help="number of top compounds to save")
+# read in command line options
+(options, args) = parser.parse_args()
+
 # load the ML models
-lr_rdk5 = pickle.load(gzip.open(path+'../final_models/lr_rdk5_model.pkl.gz', 'rb'))
-rf_rdk5 = pickle.load(gzip.open(path+'../final_models/rf_rdk5_model.pkl.gz', 'rb'))
-rf_morgan2 = pickle.load(gzip.open(path+'../final_models/rf_morgan2_model.pkl.gz', 'rb'))
+if options.f4096:
+    lr_rdk5 = pickle.load(gzip.open(path+'../final_models/lr_rdk5-4096_model.pkl.gz', 'rb'))
+    rf_rdk5 = pickle.load(gzip.open(path+'../final_models/rf_rdk5-4096_model.pkl.gz', 'rb'))
+    rf_morgan2 = pickle.load(gzip.open(path+'../final_models/rf_morgan2-4096_model.pkl.gz', 'rb'))
+else:
+    lr_rdk5 = pickle.load(gzip.open(path+'../final_models/lr_rdk5_model.pkl.gz', 'rb'))
+    rf_rdk5 = pickle.load(gzip.open(path+'../final_models/rf_rdk5_model.pkl.gz', 'rb'))
+    rf_morgan2 = pickle.load(gzip.open(path+'../final_models/rf_morgan2_model.pkl.gz', 'rb'))
 print("rf models loaded")
 
 # loop over commercial products
@@ -34,17 +51,21 @@ for line in gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'rt'):
     line = line.rstrip().split()
     # contains: [smiles, identifier]
     # RDK5
-    fp = cf.getNumpyFP(line[0], 'rdk5', 'float')
-    proba_lr_rdk5.append(lr_rdk5.predict_proba(fp)[0][1])
-    proba_rf_rdk5.append(rf_rdk5.predict_proba(fp)[0][1])
-    fp = cf.getNumpyFP(line[0], 'morgan2', 'float')
-    proba_rf_morgan2.append(rf_morgan2.predict_proba(fp)[0][1])
+    fp = cf.getNumpyFP(line[0], 'rdk5' if not options.f4096 else 'rdk5-4096', 'float')
+    proba_lr_rdk5.append(lr_rdk5.predict_proba(fp.reshape(1, -1))[0][1])
+    proba_rf_rdk5.append(rf_rdk5.predict_proba(fp.reshape(1, -1))[0][1])
+    fp = cf.getNumpyFP(line[0], 'morgan2' if not options.f4096 else 'morgan2-4096', 'float')
+    proba_rf_morgan2.append(rf_morgan2.predict_proba(fp.reshape(1, -1))[0][1])
     mols.append((line[1], line[0]))
 print("probabilities calculated")
 
 # load similarities
-scores_rdk5 = pickle.load(gzip.open(path+'scores_rdk5.pkl.gz', 'rb'))
-scores_morgan2 = pickle.load(gzip.open(path+'scores_morgan2.pkl.gz', 'rb'))
+if options.f4096:
+    scores_rdk5 = pickle.load(gzip.open(path+'scores_rdk5-4096.pkl.gz', 'rb'))
+    scores_morgan2 = pickle.load(gzip.open(path+'scores_morgan2-4096.pkl.gz', 'rb'))
+else:
+    scores_rdk5 = pickle.load(gzip.open(path+'scores_rdk5.pkl.gz', 'rb'))
+    scores_morgan2 = pickle.load(gzip.open(path+'scores_morgan2.pkl.gz', 'rb'))
 "similarities loaded"
 
 # assign ranks
@@ -65,9 +86,13 @@ fusion_scores.sort(reverse=True)
 print("fusion done")
 
 # write out
-outfile = gzip.open(path+'ranked_list_top10K_commercial_cmps.dat.gz', 'wt')
+fn = 'ranked_list_top{top}_commercial_cmps-{fpsize}.dat.gz'.format(
+    top=options.top,
+    fpsize='fpsize=4096' if options.f4096 else 'fpsize=1024-2048'
+)
+outfile = gzip.open(path+fn, 'wt')
 outfile.write("#Identifier\tSMILES\tMax_Rank\tMax_Proba\tSimilarity\n")
-for r, pp, s, idx, smiles in fusion_scores[:10000]:
+for r, pp, s, idx, smiles in fusion_scores[:options.top]:
     outfile.write("%s\t%s\t%i\t%.5f\t%.5f\n" % (idx, smiles, r, pp, s))
 outfile.close()
 print("list written")
