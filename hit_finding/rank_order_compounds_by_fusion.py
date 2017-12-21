@@ -12,6 +12,10 @@ import sys
 
 from optparse import OptionParser
 
+from joblib import Parallel, delayed
+import itertools
+import time
+
 # common functions
 sys.path.insert(0, os.getcwd()+'/../')
 import common_functions as cf
@@ -26,6 +30,10 @@ parser.add_option("--f4096", action="store_true", dest="f4096",
                   help="use fingerprint size of 4096")
 parser.add_option("--top", type=int, default=10000, dest="top",
                   help="number of top compounds to save")
+parser.add_option("--jobs", type=int, default=4, dest="jobs",
+                  help="number of processes to use, joblib semantics")
+parser.add_option("--chunksize", type=int, default=1000, dest="chunk_size",
+                  help="size of each chunk for parallel processing")
 # read in command line options
 (options, args) = parser.parse_args()
 
@@ -40,23 +48,58 @@ else:
     rf_morgan2 = pickle.load(gzip.open(path+'../final_models/rf_morgan2_model.pkl.gz', 'rb'))
 print("rf models loaded")
 
+
 # loop over commercial products
+def score(lines, lr_rdk5, rf_rdk5, rf_morgan2):
+    proba_lr_rdk5 = []
+    proba_rf_rdk5 = []
+    proba_rf_morgan2 = []
+    mols = []
+    start = time.time()
+    for i, line in enumerate(lines):
+        if i > 0 and i % 500 == 0:
+            taken = time.time() - start
+            print('Ranked %d compounds in %.2f seconds (%.2f cpds/s)' % (i, taken, i / taken))
+        if line[0] == "#":
+            continue
+        line = line.rstrip().split()
+        # contains: [smiles, identifier]
+        # RDK5
+        fp = cf.getNumpyFP(line[0], 'rdk5' if not options.f4096 else 'rdk5-4096', 'float')
+        proba_lr_rdk5.append(lr_rdk5.predict_proba(fp.reshape(1, -1))[0][1])
+        proba_rf_rdk5.append(rf_rdk5.predict_proba(fp.reshape(1, -1))[0][1])
+        fp = cf.getNumpyFP(line[0], 'morgan2' if not options.f4096 else 'morgan2-4096', 'float')
+        proba_rf_morgan2.append(rf_morgan2.predict_proba(fp.reshape(1, -1))[0][1])
+        mols.append((line[1], line[0]))
+    return proba_lr_rdk5, proba_rf_rdk5, proba_rf_morgan2, mols
+
+
+def chunker(chunksize, iterable):
+    it = iter(iterable)
+    while True:
+       chunk = tuple(itertools.islice(it, chunksize))
+       if not chunk:
+           return
+       yield chunk
+
+with gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'rt') as lines:
+    results = Parallel(pre_dispatch='4 * n_jobs', n_jobs=options.jobs)(
+        delayed(score)(lines,
+                       lr_rdk5,
+                       rf_rdk5,
+                       rf_morgan2)
+        for lines in chunker(options.chunk_size, lines)
+    )
+
 proba_lr_rdk5 = []
 proba_rf_rdk5 = []
 proba_rf_morgan2 = []
 mols = []
-for line in gzip.open(path+'commercial_cmps_cleaned.dat.gz', 'rt'):
-    if line[0] == "#":
-        continue
-    line = line.rstrip().split()
-    # contains: [smiles, identifier]
-    # RDK5
-    fp = cf.getNumpyFP(line[0], 'rdk5' if not options.f4096 else 'rdk5-4096', 'float')
-    proba_lr_rdk5.append(lr_rdk5.predict_proba(fp.reshape(1, -1))[0][1])
-    proba_rf_rdk5.append(rf_rdk5.predict_proba(fp.reshape(1, -1))[0][1])
-    fp = cf.getNumpyFP(line[0], 'morgan2' if not options.f4096 else 'morgan2-4096', 'float')
-    proba_rf_morgan2.append(rf_morgan2.predict_proba(fp.reshape(1, -1))[0][1])
-    mols.append((line[1], line[0]))
+for plr, prr, prm, m in results:
+    proba_lr_rdk5 += plr
+    proba_rf_rdk5 += prr
+    proba_rf_morgan2 += prm
+    mols += m
 print("probabilities calculated")
 
 # load similarities
